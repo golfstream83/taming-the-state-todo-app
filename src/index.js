@@ -1,10 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { combineReducers, createStore } from 'redux';
+import { applyMiddleware, combineReducers, createStore } from 'redux';
 import { Provider, connect } from 'react-redux';
+import { createLogger } from 'redux-logger';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
+
+const logger = createLogger();
 
 // action types
 const TODO_ADD = 'TODO_ADD';
@@ -82,7 +85,11 @@ const rootReducer = combineReducers({
     filterState: filterReducer,
 });
 
-const store = createStore(rootReducer);
+const store = createStore(
+    rootReducer,
+    undefined,
+    applyMiddleware(logger)
+);
 
 // view layer
 
@@ -101,31 +108,20 @@ function TodoItem({ todo, onToggleTodo }) {
     );
 }
 
-function TodoList({ todos, onToggleTodo }) {
+function TodoList({ todos }) {
     return (
         <div>
-            {todos.map(todo => <TodoItem
+            {todos.map(todo => <ConnectedTodoItem
                 key={todo.id}
                 todo={todo}
-                onToggleTodo={onToggleTodo}
             />)}
         </div>
     );
 }
 
-function TodoApp({ todos, onToggleTodo }) {
-    return <TodoList
-        todos={todos}
-        onToggleTodo={onToggleTodo}
-    />;
+function TodoApp() {
+    return <ConnectedTodoList />;
 }
-
-ReactDOM.render(
-    <Provider store={store}>
-        <ConnectedTodoApp />
-    </Provider>,
-    document.getElementById('root')
-);
 
 function mapStateToProps(state) {
     return {
@@ -139,7 +135,15 @@ function mapDispatchToProps(dispatch) {
     };
 }
 
-const ConnectedTodoApp = connect(mapStateToProps, mapDispatchToProps)(TodoApp);
+const ConnectedTodoList = connect(mapStateToProps)(TodoList);
+const ConnectedTodoItem = connect(null, mapDispatchToProps)(TodoItem);
+
+ReactDOM.render(
+    <Provider store={store}>
+        <TodoApp />
+    </Provider>,
+    document.getElementById('root')
+);
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
