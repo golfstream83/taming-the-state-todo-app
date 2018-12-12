@@ -4,20 +4,26 @@ import { applyMiddleware, combineReducers, createStore } from 'redux';
 import { Provider, connect } from 'react-redux';
 import { createLogger } from 'redux-logger';
 import { schema, normalize } from 'normalizr';
+import uuid from 'uuid/v4';
 import './index.css';
-import App from './App';
-import * as serviceWorker from './serviceWorker';
 
 const logger = createLogger();
 
 // schemas
-
 const todoSchema = new schema.Entity('todo');
 
 // action types
 const TODO_ADD = 'TODO_ADD';
 const TODO_TOGGLE = 'TODO_TOGGLE';
 const FILTER_SET = 'FILTER_SET';
+
+// filters
+
+const VISIBILITY_FILTERS = {
+    SHOW_COMPLETED: item => item.completed,
+    SHOW_INCOMPLETED: item => !item.completed,
+    SHOW_ALL: item => true,
+};
 
 // reducers
 const todos = [
@@ -34,6 +40,7 @@ const todos = [
 ];
 
 const normalizedTodos = normalize(todos, [todoSchema]);
+
 const initialTodoState = {
     entities: normalizedTodos.entities.todo,
     ids: normalizedTodos.result,
@@ -113,7 +120,6 @@ const store = createStore(
 );
 
 // view layer
-
 function TodoItem({ todo, onToggleTodo }) {
     const { name, id, completed } = todo;
     return (
@@ -125,6 +131,65 @@ function TodoItem({ todo, onToggleTodo }) {
             >
                 {completed ? "Incomplete" : "Complete"}
             </button>
+        </div>
+    );
+}
+
+class TodoCreate extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            value: '',
+        };
+
+        this.onCreateTodo = this.onCreateTodo.bind(this);
+        this.onChangeName = this.onChangeName.bind(this);
+    }
+
+    onChangeName(event) {
+        this.setState({ value: event.target.value });
+    }
+
+    onCreateTodo(event) {
+        this.props.onAddTodo(this.state.value);
+        this.setState({ value: '' });
+        event.preventDefault();
+    }
+
+    render() {
+        return (
+            <div>
+                <form onSubmit={this.onCreateTodo}>
+                    <input
+                        type="text"
+                        placeholder="Add Todo..."
+                        value={this.state.value}
+                        onChange={this.onChangeName}
+                    />
+                    <button type="submit">Add</button>
+                </form>
+            </div>
+        );
+    }
+}
+
+function Filter({ onSetFilter }) {
+    return (
+        <div>
+            Show
+            <button
+                type="button"
+                onClick={() => onSetFilter('SHOW_ALL')}>
+                All</button>
+            <button
+                type="button"
+                onClick={() => onSetFilter('SHOW_COMPLETED')}>
+                Completed</button>
+            <button
+                type="button"
+                onClick={() => onSetFilter('SHOW_INCOMPLETED')}>
+                Incompleted</button>
         </div>
     );
 }
@@ -141,13 +206,21 @@ function TodoList({ todosAsIds }) {
 }
 
 function TodoApp() {
-    return <ConnectedTodoList />;
+    return (
+        <div>
+            <ConnectedFilter />
+            <ConnectedTodoCreate />
+            <ConnectedTodoList />;
+        </div>
+    );
 }
 
 // selectors
-
 function getTodosAsIds(state) {
-    return state.todoState.ids;
+    return state.todoState.ids
+        .map(id => state.todoState.entities[id])
+        .filter(VISIBILITY_FILTERS[state.filterState])
+        .map(todo => todo.id);
 }
 
 function getTodo(state, todoId) {
@@ -172,8 +245,22 @@ function mapDispatchToPropsItem(dispatch) {
     };
 }
 
+function mapDispatchToPropsCreate(dispatch) {
+    return {
+        onAddTodo: name => dispatch(doAddTodo(uuid(), name)),
+    };
+}
+
+function mapDispatchToPropsFilter(dispatch) {
+    return {
+        onSetFilter: filterType => dispatch(doSetFilter(filterType)),
+    };
+}
+
 const ConnectedTodoList = connect(mapStateToPropsList)(TodoList);
 const ConnectedTodoItem = connect(mapStateToPropsItem, mapDispatchToPropsItem)(TodoItem);
+const ConnectedTodoCreate = connect(null, mapDispatchToPropsCreate)(TodoCreate);
+const ConnectedFilter = connect(null, mapDispatchToPropsFilter)(Filter);
 
 ReactDOM.render(
     <Provider store={store}>
@@ -181,8 +268,3 @@ ReactDOM.render(
     </Provider>,
     document.getElementById('root')
 );
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: http://bit.ly/CRA-PWA
-serviceWorker.unregister();
