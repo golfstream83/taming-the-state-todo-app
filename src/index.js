@@ -51,7 +51,7 @@ const initialTodoState = {
     ids: normalizedTodos.result,
 };
 
-function todoReducer(state = initialTodoState, action) {
+const todoReducer = (state = initialTodoState, action) => {
     switch(action.type) {
         case TODO_ADD : {
             return applyAddTodo(state, action);
@@ -61,33 +61,33 @@ function todoReducer(state = initialTodoState, action) {
         }
         default : return state;
     }
-}
+};
 
-function applyAddTodo(state, action) {
+const applyAddTodo = (state, action) => {
     const todo = { ...action.todo, completed: false };
     const entities = { ...state.entities, [todo.id]: todo };
     const ids = [ ...state.ids, action.todo.id ];
     return { ...state, entities, ids };
-}
+};
 
-function applyToggleTodo(state, action) {
+const applyToggleTodo = (state, action) => {
     const id = action.todo.id;
     const todo = state.entities[id];
     const toggledTodo = { ...todo, completed: !todo.completed };
     const entities = { ...state.entities, [id]: toggledTodo };
     return { ...state, entities };
-}
+};
 
-function filterReducer(state = 'SHOW_ALL', action) {
+const filterReducer = (state = 'SHOW_ALL', action) => {
     switch(action.type) {
         case FILTER_SET : {
             return applySetFilter(state, action);
         }
         default : return state;
     }
-}
+};
 
-function notificationReducer(state = {}, action) {
+const notificationReducer = (state = {}, action) => {
     switch(action.type) {
         case TODO_ADD : {
             return applySetNotifyAboutAddTodo(state, action);
@@ -97,60 +97,48 @@ function notificationReducer(state = {}, action) {
         }
         default : return state;
     }
-}
+};
 
-function applySetNotifyAboutAddTodo(state, action) {
+const applySetNotifyAboutAddTodo = (state, action) => {
     const { name, id } = action.todo;
     return { ...state, [id]: 'Todo Created: ' + name  };
-}
+};
 
-function applySetFilter(state, action) {
-    return action.filter;
-}
+const applySetFilter = (state, action) => action.filter;
 
-function applyRemoveNotification(state, action) {
+const applyRemoveNotification = (state, action) => {
     const {
         [action.id]: notificationToRemove,
         ...restNotifications
     } = state;
     return restNotifications;
-}
+};
 
 // action creators
-function doAddTodo(id, name) {
-    return {
-        type: TODO_ADD,
-        todo: { id, name },
-    };
-}
+const doAddTodo = (id, name) => ({
+    type: TODO_ADD,
+    todo: { id, name },
+});
 
-function doToggleTodo(id) {
-    return {
-        type: TODO_TOGGLE,
-        todo: { id },
-    };
-}
+const doToggleTodo = (id) => ({
+    type: TODO_TOGGLE,
+    todo: { id }
+});
 
-function doSetFilter(filter) {
-    return {
-        type: FILTER_SET,
-        filter,
-    };
-}
+const doSetFilter = (filter) => ({
+    type: FILTER_SET,
+    filter
+});
 
-function doHideNotification(id) {
-    return {
-        type: NOTIFICATION_HIDE,
-        id
-    };
-}
+const doHideNotification = (id) => ({
+    type: NOTIFICATION_HIDE,
+    id
+});
 
-function doAddTodoWithNotification(id, name) {
-    return {
-        type: TODO_ADD_WITH_NOTIFICATION,
-        todo: { id, name },
-    };
-}
+const doAddTodoWithNotification = (id, name) => ({
+    type: TODO_ADD_WITH_NOTIFICATION,
+    todo: {id, name}
+});
 
 const rootReducer = combineReducers({
     todoState: todoReducer,
@@ -180,15 +168,13 @@ function* handleAddTodoWithNotification(action) {
 }
 
 // view layer
-function Notifications({ notifications }) {
-    return (
-        <div>
-            {notifications.map(note => <div key={note}>{note}</div>)}
-        </div>
-    );
-}
+const Notifications = ({ notifications }) => (
+    <div>
+        {notifications.map(note => <div key={note}>{note}</div>)}
+    </div>
+);
 
-function TodoItem({ todo, onToggleTodo }) {
+const TodoItem = ({ todo, onToggleTodo }) => {
     const { name, id, completed } = todo;
     return (
         <div>
@@ -201,7 +187,7 @@ function TodoItem({ todo, onToggleTodo }) {
             </button>
         </div>
     );
-}
+};
 
 class TodoCreate extends React.Component {
     constructor(props) {
@@ -215,15 +201,13 @@ class TodoCreate extends React.Component {
         this.onChangeName = this.onChangeName.bind(this);
     }
 
-    onChangeName(event) {
-        this.setState({ value: event.target.value });
-    }
+    onChangeName = (event) => this.setState({ value: event.target.value });
 
-    onCreateTodo(event) {
+    onCreateTodo = (event) => {
         this.props.onAddTodo(this.state.value);
         this.setState({ value: '' });
         event.preventDefault();
-    }
+    };
 
     render() {
         return (
@@ -242,103 +226,69 @@ class TodoCreate extends React.Component {
     }
 }
 
-function Filter({ onSetFilter }) {
-    return (
-        <div>
-            Show
-            <button
-                type="button"
-                onClick={() => onSetFilter('SHOW_ALL')}>
-                All</button>
-            <button
-                type="button"
-                onClick={() => onSetFilter('SHOW_COMPLETED')}>
-                Completed</button>
-            <button
-                type="button"
-                onClick={() => onSetFilter('SHOW_INCOMPLETED')}>
-                Incompleted</button>
-        </div>
-    );
-}
+const Filter = ({ onSetFilter }) => (
+    <div>
+        Show
+        <button
+            type="button"
+            onClick={() => onSetFilter('SHOW_ALL')}>
+            All</button>
+        <button
+            type="button"
+            onClick={() => onSetFilter('SHOW_COMPLETED')}>
+            Completed</button>
+        <button
+            type="button"
+            onClick={() => onSetFilter('SHOW_INCOMPLETED')}>
+            Incompleted</button>
+    </div>
+);
 
-function TodoList({ todosAsIds }) {
-    return (
-        <div>
-            {todosAsIds.map(todoId => <ConnectedTodoItem
+const TodoList = ({ todosAsIds }) => (
+    <div>
+        {todosAsIds.map(todoId =>
+            <ConnectedTodoItem
                 key={todoId}
                 todoId={todoId}
-            />)}
-        </div>
-    );
-}
+            />
+        )}
+    </div>
+);
 
-function TodoApp() {
-    return (
-        <div>
-            <ConnectedFilter />
-            <ConnectedTodoCreate />
-            <ConnectedTodoList />;
-            <ConnectedNotifications />
-        </div>
-    );
-}
+const TodoApp = () => (
+    <div>
+        <ConnectedFilter />
+        <ConnectedTodoCreate />
+        <ConnectedTodoList />;
+        <ConnectedNotifications />
+    </div>
+);
 
 // selectors
-function getTodosAsIds(state) {
-    return state.todoState.ids
+const getTodosAsIds = (state) => (
+    state.todoState.ids
         .map(id => state.todoState.entities[id])
         .filter(VISIBILITY_FILTERS[state.filterState])
-        .map(todo => todo.id);
-}
+        .map(todo => todo.id)
+);
 
-function getTodo(state, todoId) {
-    return state.todoState.entities[todoId];
-}
+const getTodo = (state, todoId) => state.todoState.entities[todoId];
 
-function getNotifications(state) {
-    return getArrayOfObject(state.notificationState);
-}
+const getNotifications = (state) => getArrayOfObject(state.notificationState);
 
-function getArrayOfObject(object) {
-    return Object.keys(object).map(key => object[key]);
-}
+const getArrayOfObject = (object) => Object.keys(object).map(key => object[key]);
 
-function mapStateToPropsList(state) {
-    return {
-        todosAsIds: getTodosAsIds(state),
-    };
-}
+const mapStateToPropsList = (state) => ({todosAsIds: getTodosAsIds(state)});
 
-function mapStateToPropsItem(state, props) {
-    return {
-        todo: getTodo(state, props.todoId),
-    };
-}
+const mapStateToPropsItem = (state, props) => ({todo: getTodo(state, props.todoId)});
 
-function mapDispatchToPropsItem(dispatch) {
-    return {
-        onToggleTodo: id => dispatch(doToggleTodo(id)),
-    };
-}
+const mapDispatchToPropsItem = (dispatch) => ({onToggleTodo: id => dispatch(doToggleTodo(id))});
 
-function mapDispatchToPropsCreate(dispatch) {
-    return {
-        onAddTodo: name => dispatch(doAddTodoWithNotification(uuid(), name)),
-    };
-}
+const mapDispatchToPropsCreate = (dispatch) => ({onAddTodo: name => dispatch(doAddTodoWithNotification(uuid(), name))});
 
-function mapDispatchToPropsFilter(dispatch) {
-    return {
-        onSetFilter: filterType => dispatch(doSetFilter(filterType)),
-    };
-}
+const mapDispatchToPropsFilter = (dispatch) => ({onSetFilter: filterType => dispatch(doSetFilter(filterType))});
 
-function mapStateToPropsNotifications(state, props) {
-    return {
-        notifications: getNotifications(state),
-    };
-}
+const mapStateToPropsNotifications = (state, props) => ({notifications: getNotifications(state)});
 
 const ConnectedTodoList = connect(mapStateToPropsList)(TodoList);
 const ConnectedTodoItem = connect(mapStateToPropsItem, mapDispatchToPropsItem)(TodoItem);
