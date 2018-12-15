@@ -1,4 +1,4 @@
-export const FILTER_SET = 'FILTER_SET';
+import {FILTER_SET} from "./actions";
 
 export const doSetFilter = (filter) => ({
     type: FILTER_SET,

@@ -1,5 +1,5 @@
-import {TODO_ADD} from "../todo/actionCreators";
-import {NOTIFICATION_HIDE} from "./actionCreators";
+import {TODO_ADD} from "../todo/actions";
+import {NOTIFICATION_HIDE} from "./actions";
 
 export const notificationReducer = (state = {}, action) => {
     switch(action.type) {

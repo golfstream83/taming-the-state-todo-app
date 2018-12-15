@@ -1,5 +1,5 @@
 import {normalize, schema} from "normalizr";
-import {TODO_ADD, TODO_TOGGLE} from "./actionCreators";
+import {TODO_ADD, TODO_TOGGLE} from "./actions";
 
 const todoSchema = new schema.Entity('todo');
 

@@ -1,4 +1,4 @@
-import {FILTER_SET} from "./actionCreators";
+import {FILTER_SET} from "./actions";
 
 export const filterReducer = (state = 'SHOW_ALL', action) => {
     switch(action.type) {
